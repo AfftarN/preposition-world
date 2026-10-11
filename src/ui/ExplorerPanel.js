@@ -6,6 +6,7 @@ export class ExplorerPanel {
     this.store = store;
     this.soundFX = soundFX;
     this.element = null;
+    this.isCollapsed = false;
 
     this.render();
     this.store.subscribe(() => this.update());
@@ -13,45 +14,71 @@ export class ExplorerPanel {
 
   render() {
     this.element = document.createElement('div');
-    this.element.className = 'pointer-events-auto absolute top-20 left-3 md:left-4 z-20 w-80 max-w-[calc(100vw-1.5rem)] max-h-[calc(100vh-6.5rem)] flex flex-col bg-slate-900/85 backdrop-blur-md rounded-2xl border border-slate-800 shadow-2xl overflow-hidden transition-all duration-300';
+    this.element.className = 'pointer-events-auto absolute top-20 left-3 md:left-4 z-20 w-80 max-w-[calc(100vw-1.5rem)] max-h-[calc(100vh-6.5rem)] flex flex-col bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-800 shadow-2xl overflow-hidden transition-all duration-300';
     this.element.innerHTML = `
       <!-- Header -->
       <div class="p-3.5 border-b border-slate-800 flex items-center justify-between">
         <h2 class="text-sm font-extrabold text-white flex items-center gap-2">
           <span>📚</span> Preposition Catalog
         </h2>
-        <span id="catalog-count" class="text-[11px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full">
-          ${this.store.prepositions.length} items
-        </span>
-      </div>
-
-      <!-- Search Input -->
-      <div class="p-3 border-b border-slate-800/60 bg-slate-950/40">
-        <div class="relative">
-          <input
-            id="prep-search-input"
-            type="text"
-            placeholder="Search preposition (e.g. in, across, depend)..."
-            class="w-full bg-slate-900 text-slate-100 placeholder-slate-500 text-xs px-3 py-2 rounded-xl border border-slate-700/80 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
-          />
+        <div class="flex items-center gap-1.5">
+          <span id="catalog-count" class="text-[11px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full">
+            ${this.store.prepositions.length}
+          </span>
+          <button id="collapse-catalog-btn" title="Toggle catalog drawer" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition">
+            ◀
+          </button>
         </div>
       </div>
 
-      <!-- Category Filter Tabs -->
-      <div class="flex items-center gap-1 p-2 bg-slate-950/20 border-b border-slate-800/40 overflow-x-auto no-scrollbar">
-        <button data-cat="all" class="cat-tab px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">All</button>
-        ${categories.map(c => `
-          <button data-cat="${c.id}" class="cat-tab px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">${c.title.split(' ')[0]}</button>
-        `).join('')}
-      </div>
+      <div id="catalog-body" class="flex flex-col flex-1 overflow-hidden transition-all duration-300">
+        <!-- Search Input -->
+        <div class="p-3 border-b border-slate-800/60 bg-slate-950/40">
+          <div class="relative">
+            <input
+              id="prep-search-input"
+              type="text"
+              placeholder="Search preposition (e.g. in, across, depend)..."
+              class="w-full bg-slate-900 text-slate-100 placeholder-slate-500 text-xs px-3 py-2 rounded-xl border border-slate-700/80 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+            />
+          </div>
+        </div>
 
-      <!-- Prepositions List -->
-      <div id="prep-list-container" class="flex-1 overflow-y-auto p-2 space-y-1.5">
-        <!-- Injected dynamically -->
+        <!-- Category Filter Tabs -->
+        <div class="flex items-center gap-1 p-2 bg-slate-950/20 border-b border-slate-800/40 overflow-x-auto no-scrollbar">
+          <button data-cat="all" class="cat-tab px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">All</button>
+          ${categories.map(c => `
+            <button data-cat="${c.id}" class="cat-tab px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">${c.title.split(' ')[0]}</button>
+          `).join('')}
+        </div>
+
+        <!-- Prepositions List -->
+        <div id="prep-list-container" class="flex-1 overflow-y-auto p-2 space-y-1.5">
+          <!-- Injected dynamically -->
+        </div>
       </div>
     `;
 
     this.container.appendChild(this.element);
+
+    // Collapse listener
+    const collapseBtn = this.element.querySelector('#collapse-catalog-btn');
+    const catalogBody = this.element.querySelector('#catalog-body');
+    collapseBtn.addEventListener('click', () => {
+      this.soundFX.playClick();
+      this.isCollapsed = !this.isCollapsed;
+      if (this.isCollapsed) {
+        catalogBody.classList.add('hidden');
+        this.element.classList.remove('w-80');
+        this.element.classList.add('w-auto');
+        collapseBtn.textContent = '▶';
+      } else {
+        catalogBody.classList.remove('hidden');
+        this.element.classList.add('w-80');
+        this.element.classList.remove('w-auto');
+        collapseBtn.textContent = '◀';
+      }
+    });
 
     // Search input listener
     const searchInput = this.element.querySelector('#prep-search-input');
@@ -101,7 +128,7 @@ export class ExplorerPanel {
     });
 
     const countBadge = this.element.querySelector('#catalog-count');
-    countBadge.textContent = `${filtered.length} items`;
+    countBadge.textContent = `${filtered.length}`;
 
     // Render list
     const listContainer = this.element.querySelector('#prep-list-container');

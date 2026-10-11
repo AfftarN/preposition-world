@@ -58,7 +58,12 @@ function displayPrepositionIn3D(prep) {
   if (!target) return;
 
   // Camera smooth focus
-  world.cameraManager.focusOn(target, 0.95);
+  if (prep.category === 'time') {
+    // Elevate and frame the full Time Pyramid
+    world.cameraManager.focusOn({ x: 8, y: 2.3, z: -3.6 }, 1.35);
+  } else {
+    world.cameraManager.focusOn(target, 0.95);
+  }
 
   // Position Character
   character.setPosition(target.x, target.y, target.z);
@@ -71,13 +76,15 @@ function displayPrepositionIn3D(prep) {
   if (prepId === 'in-place') {
     visualVectors.showContainer(target, { x: 2.2, y: 1.5, z: 2.2 });
   } else if (prepId === 'in-time') {
-    visualVectors.showContainer({ x: target.x, y: 0.9, z: target.z }, { x: 6.8, y: 1.2, z: 6.8 });
+    visualVectors.showContainer({ x: 8, y: 0.9, z: -4 }, { x: 7.4, y: 1.05, z: 7.4 });
   } else if (prepId === 'on-place') {
     visualVectors.showSurface(target, { x: 2.6, z: 2.0 });
   } else if (prepId === 'on-time') {
-    visualVectors.showSurface(target, { x: 4.8, z: 4.8 });
-  } else if (prepId === 'at-place' || prepId === 'at-time') {
-    visualVectors.showCoordinatePoint(target);
+    visualVectors.showSurface({ x: 8, y: 2.1, z: -4 }, { x: 5.2, z: 5.2 });
+  } else if (prepId === 'at-place') {
+    visualVectors.showCoordinatePoint(target, true);
+  } else if (prepId === 'at-time') {
+    visualVectors.showCoordinatePoint(target, false);
   } else if (['into', 'through', 'across', 'onto', 'towards'].includes(prep.name)) {
     const fromCoord = { x: target.x - 2.5, y: target.y + 1.2, z: target.z - 2.0 };
     visualVectors.showArrow(fromCoord, target, 0x22c55e);

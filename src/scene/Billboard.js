@@ -44,7 +44,7 @@ export function createBillboardSprite(title, subtitle, borderColor = '#ec4899', 
   const mat = new THREE.SpriteMaterial({
     map: texture,
     transparent: true,
-    depthTest: false // Always visible, no clipping
+    depthTest: true
   });
   const sprite = new THREE.Sprite(mat);
   sprite.scale.set(3.2, 1.6, 1.0);

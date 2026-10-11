@@ -1,14 +1,47 @@
 import * as THREE from 'three';
-import { createBillboardSprite } from '../Billboard.js';
+
+function createRiserTexture(tierName, examples, accentColor, bgColor = '#0f172a') {
+  if (typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 160;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.strokeStyle = accentColor;
+  ctx.lineWidth = 8;
+  ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
+
+  // Left tag
+  ctx.fillStyle = accentColor;
+  ctx.font = 'bold 72px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(tierName, 30, 80);
+
+  // Right examples
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'bold 44px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(examples, 990, 80);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
 
 export class TimeZone {
   constructor() {
     this.group = new THREE.Group();
 
+    // Calibrated target coordinates so Pip stands on the front platform of each step
     this.targets = {
-      time_pyramid_base: { x: 8, y: 1.95, z: -4 }, // IN: Years, Months (Platform 1)
-      time_pyramid_mid: { x: 8, y: 3.15, z: -4 },  // ON: Days, Dates (Platform 2)
-      time_pyramid_top: { x: 8, y: 4.35, z: -4 }   // AT: Exact Clock Points (Summit)
+      time_pyramid_base: { x: 8, y: 1.95, z: -2.3 }, // Tier 1: IN (Years, Months, Seasons)
+      time_pyramid_mid: { x: 8, y: 3.15, z: -2.5 },  // Tier 2: ON (Days, Dates)
+      time_pyramid_top: { x: 8, y: 4.35, z: -2.8 }   // Tier 3: AT (Exact Clock Moments)
     };
 
     this.buildMeshes();
@@ -23,7 +56,7 @@ export class TimeZone {
       roughness: 0.5,
       flatShading: true
     });
-    const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(6.6, 1.0, 6.6), baseMat);
+    const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(7.2, 1.0, 7.2), baseMat);
     baseMesh.position.set(center.x, center.y + 0.5, center.z);
     baseMesh.receiveShadow = true;
     baseMesh.castShadow = true;
@@ -31,16 +64,22 @@ export class TimeZone {
 
     // Glowing Neon Edge for Tier 1
     const edge1 = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.BoxGeometry(6.64, 1.02, 6.64)),
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(7.22, 1.02, 7.22)),
       new THREE.LineBasicMaterial({ color: 0x818cf8, linewidth: 2 })
     );
     edge1.position.set(center.x, center.y + 0.5, center.z);
     this.group.add(edge1);
 
-    // Billboard Sprite always facing camera for Tier 1 (IN)
-    const inSprite = createBillboardSprite('IN (Broad Time)', 'in 2026 • in July • in summer', '#818cf8', 'rgba(30, 27, 75, 0.94)');
-    inSprite.position.set(center.x, center.y + 0.6, center.z + 3.8);
-    this.group.add(inSprite);
+    // Front Step Riser Sign for Tier 1 (IN)
+    const inTex = createRiserTexture('IN (Years • Months)', 'in 2026 • in July • in summer', '#818cf8', '#1e1b4b');
+    if (inTex) {
+      const riser1 = new THREE.Mesh(
+        new THREE.PlaneGeometry(6.8, 0.8),
+        new THREE.MeshBasicMaterial({ map: inTex })
+      );
+      riser1.position.set(center.x, center.y + 0.5, center.z + 3.61);
+      this.group.add(riser1);
+    }
 
     // --- 2. TIER 2: MIDDLE (ON - Days & Dates: Friday, July 4th, Birthday) ---
     const midMat = new THREE.MeshStandardMaterial({
@@ -48,7 +87,7 @@ export class TimeZone {
       roughness: 0.5,
       flatShading: true
     });
-    const midMesh = new THREE.Mesh(new THREE.BoxGeometry(4.6, 1.2, 4.6), midMat);
+    const midMesh = new THREE.Mesh(new THREE.BoxGeometry(5.0, 1.2, 5.0), midMat);
     midMesh.position.set(center.x, center.y + 1.6, center.z);
     midMesh.receiveShadow = true;
     midMesh.castShadow = true;
@@ -56,23 +95,29 @@ export class TimeZone {
 
     // Glowing Neon Edge for Tier 2
     const edge2 = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.BoxGeometry(4.64, 1.22, 4.64)),
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(5.02, 1.22, 5.02)),
       new THREE.LineBasicMaterial({ color: 0xc084fc, linewidth: 2 })
     );
     edge2.position.set(center.x, center.y + 1.6, center.z);
     this.group.add(edge2);
 
-    // Billboard Sprite always facing camera for Tier 2 (ON)
-    const onSprite = createBillboardSprite('ON (Days & Dates)', 'on Friday • on July 4th', '#c084fc', 'rgba(59, 7, 100, 0.94)');
-    onSprite.position.set(center.x, center.y + 1.8, center.z + 2.8);
-    this.group.add(onSprite);
+    // Front Step Riser Sign for Tier 2 (ON)
+    const onTex = createRiserTexture('ON (Days & Dates)', 'on Friday • on July 4th', '#c084fc', '#3b0764');
+    if (onTex) {
+      const riser2 = new THREE.Mesh(
+        new THREE.PlaneGeometry(4.6, 0.8),
+        new THREE.MeshBasicMaterial({ map: onTex })
+      );
+      riser2.position.set(center.x, center.y + 1.6, center.z + 2.51);
+      this.group.add(riser2);
+    }
 
     // 3D Calendar Desk Page sitting on Tier 2
     const calStand = new THREE.Mesh(
-      new THREE.BoxGeometry(0.8, 0.6, 0.2),
+      new THREE.BoxGeometry(0.7, 0.5, 0.15),
       new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 })
     );
-    calStand.position.set(center.x + 1.6, center.y + 2.5, center.z - 1.2);
+    calStand.position.set(center.x + 1.8, center.y + 2.45, center.z - 1.0);
     calStand.rotation.y = -Math.PI / 4;
     calStand.castShadow = true;
     this.group.add(calStand);
@@ -83,7 +128,7 @@ export class TimeZone {
       roughness: 0.4,
       flatShading: true
     });
-    const topMesh = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.2, 2.4), topMat);
+    const topMesh = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.2, 2.6), topMat);
     topMesh.position.set(center.x, center.y + 2.8, center.z);
     topMesh.receiveShadow = true;
     topMesh.castShadow = true;
@@ -91,20 +136,26 @@ export class TimeZone {
 
     // Glowing Neon Edge for Tier 3
     const edge3 = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.BoxGeometry(2.44, 1.22, 2.44)),
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(2.62, 1.22, 2.62)),
       new THREE.LineBasicMaterial({ color: 0xf472b6, linewidth: 2 })
     );
     edge3.position.set(center.x, center.y + 2.8, center.z);
     this.group.add(edge3);
 
-    // Billboard Sprite always facing camera for Tier 3 (AT)
-    const atSprite = createBillboardSprite('AT (Clock Point)', 'at 5:00 PM • at noon', '#f472b6', 'rgba(80, 7, 36, 0.94)');
-    atSprite.position.set(center.x, center.y + 5.4, center.z);
-    this.group.add(atSprite);
+    // Front Step Riser Sign for Tier 3 (AT)
+    const atTex = createRiserTexture('AT (Clock Moments)', 'at 5:00 PM • at noon', '#f472b6', '#500724');
+    if (atTex) {
+      const riser3 = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.4, 0.8),
+        new THREE.MeshBasicMaterial({ map: atTex })
+      );
+      riser3.position.set(center.x, center.y + 2.8, center.z + 1.31);
+      this.group.add(riser3);
+    }
 
     // Big 3D Clock Dial on Apex
     const clockGroup = new THREE.Group();
-    clockGroup.position.set(center.x, center.y + 4.2, center.z);
+    clockGroup.position.set(center.x, center.y + 4.1, center.z - 0.4);
 
     const clockFace = new THREE.Mesh(
       new THREE.CylinderGeometry(0.7, 0.7, 0.1, 24),
@@ -130,10 +181,10 @@ export class TimeZone {
     clockGroup.add(this.minuteHand);
 
     // Apex Spire Needle Point
-    const spireGeo = new THREE.ConeGeometry(0.1, 0.7, 8);
+    const spireGeo = new THREE.ConeGeometry(0.1, 0.8, 8);
     const spireMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, emissive: 0xbe185d, roughness: 0.2 });
     const spire = new THREE.Mesh(spireGeo, spireMat);
-    spire.position.y = 0.9;
+    spire.position.y = 0.95;
     clockGroup.add(spire);
 
     this.group.add(clockGroup);
