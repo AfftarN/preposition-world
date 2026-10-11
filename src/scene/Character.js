@@ -96,6 +96,7 @@ export class Character {
 
   setPosition(x, y, z) {
     this.mesh.position.set(x, y, z);
+    this.defaultPosition.set(x, y, z);
   }
 
   playAnimation(type, onComplete = null) {
@@ -106,6 +107,8 @@ export class Character {
     // Reset scales/rotations
     this.mesh.rotation.set(0, 0, 0);
     this.body.scale.set(1, 1, 1);
+    this.leftHand.position.set(-0.62, 0.5, 0);
+    this.rightHand.position.set(0.62, 0.5, 0);
   }
 
   update(delta = 0.016, elapsed = 0) {
@@ -128,7 +131,6 @@ export class Character {
 
     switch (this.currentAnimation) {
       case 'jump':
-      case 'hop_on_table':
       case 'jump_in_box':
       case 'jump_onto_table': {
         // Parabolic jump arc
@@ -137,6 +139,41 @@ export class Character {
         this.body.scale.y = 1.0 + Math.sin(progress * Math.PI) * 0.25;
         this.leftHand.position.y = 0.5 + height * 0.4;
         this.rightHand.position.y = 0.5 + height * 0.4;
+        break;
+      }
+
+      case 'hop_on_table': {
+        // Firm jump landing ON the surface and stamping feet to emphasize physical contact
+        const height = Math.max(0, 1.2 * Math.sin(progress * Math.PI));
+        this.mesh.position.y = this.defaultPosition.y + height;
+        if (progress > 0.5) {
+          // Foot stamp celebration of surface contact
+          this.leftFoot.position.y = 0.1 + Math.abs(Math.sin(progress * Math.PI * 6)) * 0.15;
+          this.rightFoot.position.y = 0.1 + Math.abs(Math.cos(progress * Math.PI * 6)) * 0.15;
+          this.mesh.rotation.y = Math.sin(progress * Math.PI * 4) * 0.2;
+        }
+        break;
+      }
+
+      case 'stand_at_stop': {
+        // At the coordinate: checks watch, looks around left/right, and waves hand
+        this.mesh.position.y = this.defaultPosition.y;
+        this.mesh.rotation.y = Math.sin(progress * Math.PI * 2) * 0.6; // Looking left and right
+        // Raise right hand to wave hello at the bus stop coordinate
+        this.rightHand.position.y = 0.8 + Math.sin(progress * Math.PI * 8) * 0.2;
+        this.rightHand.position.x = 0.7;
+        break;
+      }
+
+      case 'climb_pyramid_in':
+      case 'climb_pyramid_on':
+      case 'climb_pyramid_at': {
+        // Step onto pyramid tier and victory bounce
+        const hop = Math.abs(Math.sin(progress * Math.PI * 3)) * 0.5;
+        this.mesh.position.y = this.defaultPosition.y + hop;
+        this.mesh.rotation.y = progress * Math.PI * 2;
+        this.leftHand.position.y = 0.8;
+        this.rightHand.position.y = 0.8;
         break;
       }
 
@@ -198,6 +235,8 @@ export class Character {
     if (progress >= 1.0) {
       const cb = this.onAnimationComplete;
       this.currentAnimation = null;
+      this.mesh.position.copy(this.defaultPosition);
+      this.mesh.rotation.set(0, 0, 0);
       if (cb) cb();
     }
   }

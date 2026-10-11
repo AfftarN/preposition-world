@@ -61,16 +61,22 @@ function displayPrepositionIn3D(prep) {
   world.cameraManager.focusOn(target, 0.95);
 
   // Position Character
-  character.setPosition(target.x, target.y + 0.3, target.z);
+  character.setPosition(target.x, target.y, target.z);
   character.playAnimation(prep.animationType);
 
   // Render visual mental model vectors
   visualVectors.clear();
-  if (prep.name === 'in') {
+  const prepId = prep.id;
+
+  if (prepId === 'in-place') {
     visualVectors.showContainer(target, { x: 2.2, y: 1.5, z: 2.2 });
-  } else if (prep.name === 'on') {
+  } else if (prepId === 'in-time') {
+    visualVectors.showContainer({ x: target.x, y: 0.9, z: target.z }, { x: 6.8, y: 1.2, z: 6.8 });
+  } else if (prepId === 'on-place') {
     visualVectors.showSurface(target, { x: 2.6, z: 2.0 });
-  } else if (prep.name === 'at') {
+  } else if (prepId === 'on-time') {
+    visualVectors.showSurface(target, { x: 4.8, z: 4.8 });
+  } else if (prepId === 'at-place' || prepId === 'at-time') {
     visualVectors.showCoordinatePoint(target);
   } else if (['into', 'through', 'across', 'onto', 'towards'].includes(prep.name)) {
     const fromCoord = { x: target.x - 2.5, y: target.y + 1.2, z: target.z - 2.0 };
@@ -83,12 +89,12 @@ function handleQuestExecution(quest, answerResult) {
   world.cameraManager.focusOn(target, 0.9);
 
   if (answerResult.success) {
-    character.setPosition(target.x, target.y + 0.3, target.z);
+    character.setPosition(target.x, target.y, target.z);
     character.playAnimation(quest.animationAction || 'celebrate');
     visualVectors.showCoordinatePoint(target);
   } else {
     // Comic failure bounce!
-    character.setPosition(target.x, target.y + 0.3, target.z);
+    character.setPosition(target.x, target.y, target.z);
     character.playAnimation('fail_bump');
     visualVectors.clear();
   }

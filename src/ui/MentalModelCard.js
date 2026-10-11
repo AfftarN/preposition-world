@@ -14,7 +14,7 @@ export class MentalModelCard {
 
   render() {
     this.element = document.createElement('div');
-    this.element.className = 'pointer-events-auto absolute bottom-4 right-3 md:right-4 z-20 w-96 max-w-[calc(100vw-1.5rem)] bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-700/80 shadow-2xl p-4 md:p-5 transition-all duration-300';
+    this.element.className = 'pointer-events-auto absolute bottom-4 right-3 md:right-4 z-20 w-96 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-md rounded-2xl border border-slate-700/80 shadow-2xl p-4 md:p-5 transition-all duration-300';
     this.container.appendChild(this.element);
     this.update();
   }
@@ -33,6 +33,9 @@ export class MentalModelCard {
 
     const prep = this.store.getSelectedPreposition();
     if (!prep) return;
+
+    const isTimePrep = prep.category === 'time';
+    const isPlaceCore = ['in-place', 'on-place', 'at-place'].includes(prep.id);
 
     this.element.innerHTML = `
       <!-- Header -->
@@ -60,7 +63,54 @@ export class MentalModelCard {
       </div>
 
       <!-- Mental Model Section -->
-      <div class="space-y-3 text-xs">
+      <div class="space-y-2.5 text-xs">
+        <!-- Interactive Hierarchy Graphic -->
+        ${isTimePrep ? `
+          <div class="p-2.5 rounded-xl bg-slate-950/80 border border-purple-500/40">
+            <div class="text-[11px] font-bold text-purple-300 mb-1.5 flex items-center justify-between">
+              <span>📐 THE TIME PYRAMID</span>
+              <span class="text-[10px] text-slate-400">Broad → Precise</span>
+            </div>
+            <div class="space-y-1 font-mono text-[11px]">
+              <div class="flex items-center gap-2 p-1 rounded-lg ${prep.id === 'at-time' ? 'bg-pink-500/25 text-pink-300 border border-pink-500 font-bold' : 'text-slate-400'}">
+                <span class="w-8 text-center text-[10px] uppercase font-bold py-0.5 rounded bg-pink-950 text-pink-400 border border-pink-800">AT</span>
+                <span>▲ Sharp Point (5:00 PM, noon, midnight)</span>
+              </div>
+              <div class="flex items-center gap-2 p-1 rounded-lg ${prep.id === 'on-time' ? 'bg-purple-500/25 text-purple-300 border border-purple-500 font-bold' : 'text-slate-400'}">
+                <span class="w-8 text-center text-[10px] uppercase font-bold py-0.5 rounded bg-purple-950 text-purple-400 border border-purple-800">ON</span>
+                <span>■ 1-Day & Date (Friday, May 5th, Birthday)</span>
+              </div>
+              <div class="flex items-center gap-2 p-1 rounded-lg ${prep.id === 'in-time' ? 'bg-indigo-500/25 text-indigo-300 border border-indigo-500 font-bold' : 'text-slate-400'}">
+                <span class="w-8 text-center text-[10px] uppercase font-bold py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800">IN</span>
+                <span>■■ Long Container (2026, July, summer)</span>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
+        ${isPlaceCore ? `
+          <div class="p-2.5 rounded-xl bg-slate-950/80 border border-sky-500/40">
+            <div class="text-[11px] font-bold text-sky-300 mb-1.5 flex items-center justify-between">
+              <span>📐 SPATIAL DIMENSIONS</span>
+              <span class="text-[10px] text-slate-400">0D → 2D → 3D</span>
+            </div>
+            <div class="space-y-1 font-mono text-[11px]">
+              <div class="flex items-center gap-2 p-1 rounded-lg ${prep.id === 'at-place' ? 'bg-pink-500/25 text-pink-300 border border-pink-500 font-bold' : 'text-slate-400'}">
+                <span class="w-8 text-center text-[10px] uppercase font-bold py-0.5 rounded bg-pink-950 text-pink-400 border border-pink-800">AT</span>
+                <span>📍 0D Point (at the bus stop, at the door)</span>
+              </div>
+              <div class="flex items-center gap-2 p-1 rounded-lg ${prep.id === 'on-place' ? 'bg-amber-500/25 text-amber-300 border border-amber-500 font-bold' : 'text-slate-400'}">
+                <span class="w-8 text-center text-[10px] uppercase font-bold py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800">ON</span>
+                <span>▬ 2D Surface (on the table, on the bus floor)</span>
+              </div>
+              <div class="flex items-center gap-2 p-1 rounded-lg ${prep.id === 'in-place' ? 'bg-sky-500/25 text-sky-300 border border-sky-500 font-bold' : 'text-slate-400'}">
+                <span class="w-8 text-center text-[10px] uppercase font-bold py-0.5 rounded bg-sky-950 text-sky-400 border border-sky-800">IN</span>
+                <span>📦 3D Container (in the box, in the car)</span>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
         <!-- Native Intuition -->
         <div class="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50">
           <span class="font-bold text-amber-300 block mb-1 flex items-center gap-1.5">
